@@ -23,6 +23,12 @@ enum Direction {
     Right,
 }
 
+#[derive(Clone, PartialEq)]
+enum SnakeState {
+    Alive,
+    Dead,
+}
+
 struct Game {
     gl: GlGraphics,
     snake: Snake,
@@ -50,12 +56,14 @@ impl Game {
 
     fn pressed(&mut self, btn: &Button) {
         self.snake.pressed(btn);
+        self.update();
     }
 }
 
 struct Snake {
     body: LinkedList<(i32, i32)>,
     dir: Direction,
+    snakestate : SnakeState,
 }
 
 #[allow(non_snake_case)]
@@ -128,8 +136,11 @@ impl Snake {
                 }
             }
         }
+        if self.body.contains(&new_head) {
+            self.snakestate = SnakeState::Dead;
+        }
         self.body.push_front(new_head);
-        if (new_head.0 == food.x && new_head.1 == food.y) {
+        if new_head.0 == food.x && new_head.1 == food.y {
             return true;
         } else {
             self.body.pop_back().unwrap();
@@ -179,7 +190,6 @@ impl Food {
 
 fn main() {
     let opengl = OpenGL::V3_2;
-
     let mut window: GlutinWindow = WindowSettings::new("snake", [200, 200])
         .graphics_api(opengl)
         .exit_on_esc(true)
@@ -190,8 +200,9 @@ fn main() {
     let mut game = Game {
         gl: GlGraphics::new(opengl),
         snake: Snake {
-            body: LinkedList::from_iter((vec![(0, 0), (0, 1)]).into_iter()),
+            body: LinkedList::from_iter((vec![(0, 0)]).into_iter()),
             dir: Direction::Right,
+            snakestate: SnakeState::Alive,
         },
         food: Food {
             x: rand::thread_rng().gen_range(0, 10),
@@ -200,19 +211,23 @@ fn main() {
     };
 
     let mut events = Events::new(EventSettings::new()).ups(10);
-    while let Some(e) = events.next(&mut window) {
-        if let Some(r) = e.render_args() {
-            game.render(&r);
-        }
+    while game.snake.snakestate == SnakeState::Alive {
+        if let Some(e) = events.next(&mut window) {
+            if let Some(r) = e.render_args() {
+                game.render(&r);
+            }
 
-        if let Some(_u) = e.update_args() {
-            game.update();
-        }
+            if let Some(_u) = e.update_args() {
+                game.update();
+            }
 
-        if let Some(k) = e.button_args() {
-            if k.state == ButtonState::Press {
-                game.pressed(&k.button);
+            if let Some(k) = e.button_args() {
+                if k.state == ButtonState::Press {
+                    game.pressed(&k.button);
+                }
             }
         }
     }
+    println!("Game Over");
+    println!("You ate {} blocks!", game.snake.body.len()-1);
 }
