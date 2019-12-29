@@ -15,6 +15,9 @@ use std::iter::FromIterator;
 
 const PIXEL_SIZE: i32 = 20;
 
+const WORLD_LIMIT: i32 = 29;
+const SQUARE_SIZE : f64 = 20_f64;
+
 #[derive(Clone, PartialEq)]
 enum Direction {
     Up,
@@ -79,7 +82,7 @@ impl Snake {
                 graphics::rectangle::square(
                     (x * PIXEL_SIZE) as f64,
                     (y * PIXEL_SIZE) as f64,
-                    20_f64,
+                    SQUARE_SIZE,
                 )
             })
             .collect();
@@ -102,36 +105,36 @@ impl Snake {
             Direction::Up => {
                 new_head.1 -= 1;
                 if new_head.1 < 0 {
-                    new_head.1 = 9;
+                    new_head.1 = WORLD_LIMIT;
                 }
-                if new_head.1 > 9 {
+                if new_head.1 > WORLD_LIMIT {
                     new_head.1 = 0;
                 }
             }
             Direction::Down => {
                 new_head.1 += 1;
                 if new_head.1 < 0 {
-                    new_head.1 = 9;
+                    new_head.1 = WORLD_LIMIT;
                 }
-                if new_head.1 > 9 {
+                if new_head.1 > WORLD_LIMIT {
                     new_head.1 = 0;
                 }
             }
             Direction::Left => {
                 new_head.0 -= 1;
                 if new_head.0 < 0 {
-                    new_head.0 = 9;
+                    new_head.0 = WORLD_LIMIT;
                 }
-                if new_head.0 > 9 {
+                if new_head.0 > WORLD_LIMIT {
                     new_head.0 = 0;
                 }
             }
             Direction::Right => {
                 new_head.0 += 1;
                 if new_head.0 < 0 {
-                    new_head.0 = 9;
+                    new_head.0 = WORLD_LIMIT;
                 }
-                if new_head.0 > 9 {
+                if new_head.0 > WORLD_LIMIT {
                     new_head.0 = 0;
                 }
             }
@@ -173,7 +176,7 @@ impl Food {
         let square = graphics::rectangle::square(
             (self.x * PIXEL_SIZE) as f64,
             (self.y * PIXEL_SIZE) as f64,
-            20_f64,
+            SQUARE_SIZE,
         );
 
         gl.draw(args.viewport(), |c, gl| {
@@ -183,14 +186,14 @@ impl Food {
     }
 
     fn update(&mut self) {
-        self.x = rand::thread_rng().gen_range(0, 10);
-        self.y = rand::thread_rng().gen_range(0, 10);
+        self.x = rand::thread_rng().gen_range(0, WORLD_LIMIT+1);
+        self.y = rand::thread_rng().gen_range(0, WORLD_LIMIT+1);
     }
 }
 
 fn main() {
     let opengl = OpenGL::V3_2;
-    let mut window: GlutinWindow = WindowSettings::new("snake", [200, 200])
+    let mut window: GlutinWindow = WindowSettings::new("snake", [600, 600])
         .graphics_api(opengl)
         .exit_on_esc(true)
         //.fullscreen(true)
@@ -205,8 +208,8 @@ fn main() {
             snakestate: SnakeState::Alive,
         },
         food: Food {
-            x: rand::thread_rng().gen_range(0, 10),
-            y: rand::thread_rng().gen_range(0, 10),
+            x: rand::thread_rng().gen_range(0, WORLD_LIMIT+1),
+            y: rand::thread_rng().gen_range(0, WORLD_LIMIT+1),
         },
     };
 
